@@ -1,0 +1,744 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { useState, useEffect, useCallback } from "react";
+import axios from "axios";
+import Big from "big.js";
+import { FormattedMessage, injectIntl } from "react-intl";
+import {
+  Button,
+  Card,
+  Spinner,
+  Figure,
+  ListGroup,
+  Modal,
+  FormGroup,
+  FormLabel,
+  Dropdown,
+  Form,
+} from "react-bootstrap";
+import { connect } from "react-redux";
+import "../../../src/component/OrderPlaceSuccessModal/successModal.scss";
+
+import { setTransactionInProgress } from "../../_actions/metaMaskActions";
+import NewLoader from "../../component/Loader/loader";
+import { showNotitication } from "../../utils/showNotification";
+import { blockChainConfig } from "../../config/blockChainConfig";
+import { networkType, adminAccess } from "../../config/networkType";
+import { mainTypes } from "./deemoConfig";
+import CountDown from "../../component/CountDown/countDown";
+import Disclaimer from "./disclaimerModal";
+import "./deemoCollection.scss";
+
+let providerUrl = "";
+
+let deemoAbi,
+  deemoAddress = "";
+
+const baseUrl =
+  networkType === "testnet"
+    ? `https://backend.xanalia.com`
+    : `https://prod-backend.xanalia.com`;
+
+const Web3 = require("web3");
+
+function CheckoutModal(props) {
+  const [loaderFor, setLoaderFor] = useState("");
+
+  const [nftChain] = useState(props.nftChain);
+  const [loadCollData, setLoadCollData] = useState(true);
+
+  const [calculatingPrice, setCalculatingPrice] = useState(false);
+  const [show, setShow] = useState(false);
+  const [checked, setChecked] = useState(false);
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
+  const [allowedCategories, setAllowedCategories] = useState([]);
+
+  const [plotData, setPlotData] = useState({
+    plotSize: "",
+    units: "",
+    price: "",
+  });
+  const [plotRates, setPlotRates] = useState({});
+
+  const [selectedSaleTypeIndex, setSelectedSaleTypeIndex] = useState("");
+
+  const [totalPrice, setTotalPrice] = useState(0);
+
+  const [isSoldOut, setIsSoldOut] = useState(false);
+
+  const [limitRemains, setIsLimitRemains] = useState(false);
+
+  useEffect(async () => {
+    setContractAddress();
+
+    if (props.metaMaskAddress) {
+      let resData = await getWhitelistCategoryData();
+      let user_bought = await getUserBought();
+      console.log("user bought", user_bought);
+      let tempAllowedCategories = [];
+
+      if (props.isPublicSaleOpen) {
+        tempAllowedCategories.push({
+          ...mainTypes[0],
+          remainingLimit: "Unlimited",
+          userBought: 0,
+          limit: false,
+          startTime: parseInt(resData[0]._startTime) * 1000,
+          endTime: parseInt(resData[0]._endTime) * 1000,
+        });
+
+        if (user_bought[1] - user_bought[3] > 0) {
+          tempAllowedCategories.push({
+            ...mainTypes[3],
+            remainingLimit: 0,
+            userBought: user_bought[1] - user_bought[3],
+            limit: false,
+            startTime: parseInt(resData[3]._startTime) * 1000,
+            endTime: parseInt(resData[3]._endTime) * 1000,
+          });
+        }
+        setAllowedCategories(tempAllowedCategories);
+        setLoadCollData(false);
+      } else {
+        let blindBoxId =  networkType === 'testnet' ?  2  : adminAccess ? 12 : 2 
+        axios
+          .get(
+            `${baseUrl}/blind-box/get-user-limit?address=${props.metaMaskAddress}&blindBoxId=${blindBoxId}`
+          )
+          .then(async (res) => {
+            console.log("user limit", res.data);
+            if (res.data && res.status === 200) {
+              for (let i = 1; i < mainTypes.length; i++) {
+                let limitObj = res.data[mainTypes[i].id];
+                let remainingLimit = limitObj.limit - parseInt(user_bought[i]);
+                
+                if(parseInt(resData[i]._endTime) * 1000 > new Date().getTime() ){
+                if (
+                  mainTypes[i].id === 3 &&
+                  user_bought[i - 2] - user_bought[i] > 0
+                ) {
+                  tempAllowedCategories.push({
+                    ...mainTypes[i],
+                    remainingLimit: 0,
+                    userBought: user_bought[i - 2]  - user_bought[i] ,
+                    limit: false,
+                    startTime: parseInt(resData[i]._startTime) * 1000,
+                    endTime: parseInt(resData[i]._endTime) * 1000,
+                  });
+                } else if (remainingLimit > 0) {
+                  tempAllowedCategories.push({
+                    ...mainTypes[i],
+                    remainingLimit,
+                    userBought: user_bought[i],
+                    limit: true,
+                    startTime: parseInt(resData[i]._startTime) * 1000,
+                    endTime: parseInt(resData[i]._endTime) * 1000,
+                  });
+                } else if (limitObj.infinity) {
+                  tempAllowedCategories.push({
+                    ...mainTypes[i],
+                    remainingLimit: "Unlimited",
+                    userBought: user_bought[i],
+                    limit: false,
+                    startTime: parseInt(resData[i]._startTime) * 1000,
+                    endTime: parseInt(resData[i]._endTime) * 1000,
+                  });
+                }
+               }
+              }
+              setAllowedCategories(tempAllowedCategories);
+              setLoadCollData(false);
+            } else {
+              setLoadCollData(false);
+            }
+          })
+          .catch((err) => {
+            setLoadCollData(false);
+          });
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (Object.keys(plotRates).length > 0 && plotData.units !== "") {
+      setCalculatingPrice(false);
+      if (
+        parseInt(plotData.units) >
+        parseInt(plotRates.total) - parseInt(plotRates.sold)
+      ) {
+        setIsLimitRemains(false);
+        return showNotitication(
+          "You cannot able to purchase multiple items beyond our Stock.",
+          "info"
+        );
+      }
+      let x = new Big(plotRates.perUnitprice.toString());
+      let y = new Big(plotData.units.toString());
+      let price = x.times(y).toNumber();
+      setTotalPrice(price);
+      setIsLimitRemains(true);
+    }
+  }, [plotRates]);
+
+  useEffect(() => {
+    if (plotData.units !== "") {
+      getPlotRates();
+    }
+  }, [plotData.units]);
+
+  useEffect(() => {
+    if (!props.metaMaskAddress) {
+      props.setModalOpen(false);
+    }
+  }, [props.metaMaskAddress]);
+
+  const getWhitelistCategoryData = async () => {
+    let web3 = new Web3(providerUrl);
+    let landContract = new web3.eth.Contract(deemoAbi, deemoAddress);
+    let userRange = [];
+    for (let i = 0; i < mainTypes.length; i++) {
+      userRange.push(
+        landContract.methods.getSaleDetails(mainTypes[i].id).call()
+      );
+    }
+    return Promise.all(userRange);
+  };
+
+  const getUserBought = async () => {
+    let web3 = new Web3(providerUrl);
+    let landContract = new web3.eth.Contract(deemoAbi, deemoAddress);
+    let userRange = [];
+    for (let i = 0; i < mainTypes.length; i++) {
+      userRange.push(
+        landContract.methods
+          .getUserBoughtCount(props.metaMaskAddress, mainTypes[i].id)
+          .call()
+      );
+    }
+    return Promise.all(userRange);
+  };
+
+  const setContractAddress = () => {
+    for (let i = 0; i < blockChainConfig.length; i++) {
+      if (blockChainConfig[i].key === nftChain) {
+        providerUrl = blockChainConfig[i].providerUrl;
+        deemoAbi = blockChainConfig[i].deemoConConfig.abi;
+        deemoAddress = blockChainConfig[i].deemoConConfig.add;
+      }
+    }
+  };
+
+  const handleDataChange = (key, value, sIndex) => {
+    let newData;
+    if (sIndex === selectedSaleTypeIndex) {
+      newData = { ...plotData };
+    } else {
+      newData = {
+        units: "",
+        price: "",
+      };
+
+      setPlotRates({});
+      setTotalPrice(0);
+    }
+
+    const re = /^[0-9\b]+$/;
+    if (key === "units") {
+      if (re.test(value) || value === "") {
+        newData[key] = value;
+        setPlotData(newData);
+      }
+    } else {
+      newData[key] = value;
+      setPlotData(newData);
+    }
+
+    setSelectedSaleTypeIndex(sIndex);
+  };
+
+  const getPlotRates = async () => {
+    setCalculatingPrice(true);
+    let web3 = new Web3(providerUrl);
+    let landContract = new web3.eth.Contract(deemoAbi, deemoAddress);
+    let collDataPrice = await landContract.methods.getPrice().call();
+    if (collDataPrice !== undefined) {
+      let maxMint = await landContract.methods.getMaxSupply().call();
+      let totalSupply = await landContract.methods.totalSupply().call();
+      let reservedSupply = await landContract.methods.mintedPerRarity(4).call();
+      console.log(maxMint, totalSupply, reservedSupply)
+      if (maxMint && totalSupply) {
+        if (parseInt(maxMint) <= parseInt(totalSupply) + parseInt(reservedSupply)) {
+          setIsSoldOut(true);
+        } else {
+          setIsSoldOut(false);
+        }
+      }
+      setPlotRates({
+        // ...collDataPrice,
+        sold: parseInt(totalSupply)  + parseInt(reservedSupply),
+        total: parseInt(maxMint),
+        perUnitprice: web3.utils.fromWei(collDataPrice),
+      });
+    }
+  };
+
+  const getUserProof = async () => {
+    let limit = 0;
+    if (allowedCategories[selectedSaleTypeIndex].limit) {
+      limit =
+        parseInt(plotData.units) +
+        parseInt(allowedCategories[selectedSaleTypeIndex].userBought);
+    }
+    let blindBoxId =  networkType === 'testnet' ?  2  : adminAccess ? 12 : 2 
+    let proof = await axios.get(
+      `${baseUrl}/blind-box/get-proof-hash?address=${props.metaMaskAddress}&limit=${limit}&type=${allowedCategories[selectedSaleTypeIndex].id}&blindBoxId=${blindBoxId}`
+    );
+    return proof;
+  };
+
+  const handlePlaceOrder = async () => {
+    if (props.transactionInProgress === true)
+      return showNotitication("Transaction is already in Progress", "info");
+
+    if (!plotData["units"] || plotData["units"] === "0") {
+      showNotitication(`Please select some units to buy`, "info");
+      return;
+    }
+
+    // if (parseInt(plotData["units"]) > 30) { Changed by Prashant
+
+    if (parseInt(plotData["units"]) > 3) {
+      showNotitication(
+        `You can able to purchase maximum of 3 items in a transaction`,
+        "info"
+      );
+      return;
+    }
+    if (
+      allowedCategories[selectedSaleTypeIndex].remainingLimit !== "Unlimited" &&
+      allowedCategories[selectedSaleTypeIndex].limit &&
+      parseInt(plotData["units"]) >
+        allowedCategories[selectedSaleTypeIndex].remainingLimit
+    ) {
+      showNotitication(`You can't buy units more than your max limit`, "error");
+      return;
+    }
+    let web3 = new Web3(props.provider);
+    web3.eth.getAccounts().then(async (acc) => {
+      setLoaderFor("Buy");
+      props.setTransactionInProgress(true);
+      let balance = await web3.eth.getBalance(acc[0]);
+      if (parseFloat(balance) < parseFloat(totalPrice)) {
+        setLoaderFor("");
+        props.setTransactionInProgress(false);
+        showNotitication(`Insufficient Balance`, "error");
+        return;
+      } else {
+        let user_proof = await getUserProof();
+        if (user_proof.status !== 200 || user_proof.data?.hexProof === 0) {
+          setLoaderFor("");
+          props.setTransactionInProgress(false);
+          showNotitication(`You are not whitelist to buy this.`, "error");
+          return;
+        }
+        if (
+          allowedCategories[selectedSaleTypeIndex].id === 0 ||
+          allowedCategories[selectedSaleTypeIndex].id === 1
+        ) {
+          buyCommon(acc, user_proof.data?.hexProof);
+        } else if (allowedCategories[selectedSaleTypeIndex].id === 2) {
+          preOrderDeemoNFT(acc, user_proof.data?.hexProof);
+        }
+      }
+    });
+  };
+
+  const buyCommon = (acc, user_proof) => {
+    let web3 = new Web3(props.provider);
+    let LandContract = new web3.eth.Contract(deemoAbi, deemoAddress);
+    console.log(
+      user_proof,
+      plotData.units,
+      allowedCategories[selectedSaleTypeIndex].limit,
+      allowedCategories[selectedSaleTypeIndex].id
+    );
+    LandContract.methods
+      .buyDeemoNFT(
+        user_proof,
+        plotData.units,
+        allowedCategories[selectedSaleTypeIndex].limit,
+        allowedCategories[selectedSaleTypeIndex].id
+      )
+      .send({
+        from: acc[0],
+        value: web3.utils.toHex(
+          web3.utils.toWei(totalPrice.toString(), "ether")
+        ),
+      })
+      .then((res) => {
+        showNotitication("Transaction got successfull", "success");
+        props.setTransactionInProgress(false);
+        setLoaderFor("");
+        props.setModalOpen(false);
+        props.setOpenSuccessModal(true);
+        props.setTitle("ORDER COMPLETED")
+        props.setMsg1("Congrats! Your order has been placed successfully.")
+        props.setMsg2("After successful verification, your NFTs will be visible in the owned tab.")
+        props.setMsg3("Note: Please wait it may take 24 hours to get reflected in owned tab")
+
+      })
+      .catch((err) => {
+        props.setTransactionInProgress(false);
+        setLoaderFor("");
+      });
+  };
+
+  const preOrderDeemoNFT = (acc, user_proof) => {
+    let web3 = new Web3(props.provider);
+    let LandContract = new web3.eth.Contract(deemoAbi, deemoAddress);
+    console.log(user_proof, plotData.units);
+    LandContract.methods
+      .preOrderDeemoNFT(user_proof, plotData.units)
+      .send({
+        from: acc[0],
+        value: web3.utils.toHex(
+          web3.utils.toWei(totalPrice.toString(), "ether")
+        ),
+      })
+      .then((res) => {
+        showNotitication("Transaction got successfull", "success");
+        props.setTransactionInProgress(false);
+        setLoaderFor("");
+        props.setModalOpen(false);
+        props.setOpenSuccessModal(true);
+        props.setTitle("CRAFTED COMPLETED")
+        props.setMsg1("Crafted Successfully! After a while, You can able to check the New NFT in the owned tab.")
+        // props.setMsg2("You can claim NFTs as soon as the claim is ready.")
+        props.setMsg3("")
+      })
+      .catch((err) => {
+        props.setTransactionInProgress(false);
+        setLoaderFor("");
+      });
+  };
+
+  const claimDeemoNFT = () => {
+    if (props.transactionInProgress === true)
+      return showNotitication("Transaction is already in Progress", "info");
+
+    let web3 = new Web3(props.provider);
+    let LandContract = new web3.eth.Contract(deemoAbi, deemoAddress);
+    web3.eth.getAccounts().then(async (acc) => {
+      setLoaderFor("Claim");
+      LandContract.methods
+        .claimDeemoNFT()
+        .send({
+          from: acc[0],
+        })
+        .then((res) => {
+          showNotitication("Transaction got successfull", "success");
+          props.setTransactionInProgress(false);
+          setLoaderFor("");
+          props.setModalOpen(false);
+          props.setOpenSuccessModal(true);
+          props.setTitle("CLAIM COMPLETED")
+          props.setMsg1("Congrats! Your claim has been done successfully.")
+          props.setMsg2("After successful verification, your NFTs will be visible in the owned tab.")
+          props.setMsg3("Note: Please wait it may take 24 hours to get reflected in owned tab")
+        })
+        .catch((err) => {
+          props.setTransactionInProgress(false);
+          setLoaderFor("");
+        });
+    });
+  };
+
+  const handleTimeOut = useCallback(() => {
+    setLoadCollData(true);
+    setTimeout(() => {
+      setLoadCollData(false);
+    }, 500);
+  }, []);
+  return (
+    <React.Fragment>
+      <Modal
+        size="xl"
+        className="fade connect-modal purchaseNftModal checkbox-correction"
+        aria-labelledby="contained-modal-title-vcenter"
+        dialogClassName="modal-connect-ui whiteBg"
+        backdropClassName="custom-backdrop"
+        contentClassName="custom-content"
+        centered
+        show={true}
+        // onHide={() => props.setModalOpen(false)}
+      >
+        <Modal.Header>
+          <Modal.Title>Checkout</Modal.Title>
+          <p onClick={() => props.setModalOpen(false)} className="closeButton">
+            x
+          </p>
+        </Modal.Header>
+        <Modal.Body>
+          {!loadCollData ? (
+            <div className="cartProductCheckOut">
+              <div className="cartProductTable">
+                <div className="cartProductHeader">
+                  <h5> Item</h5>
+                  <h5> Qty</h5>
+                </div>
+                {allowedCategories.length > 0 ? (
+                  allowedCategories.map((type, mainTypeIndex) => {
+                    return (
+                      <Figure
+                        className={
+                          selectedSaleTypeIndex === mainTypeIndex
+                            ? "activeRow"
+                            : ""
+                        }
+                        key={type.name}
+                      >
+                        <Figure.Image alt="171x180" src={type.image} />
+                        <Figure.Caption>
+                          <h4>{type.name}</h4>
+                          <p>{type.description}</p>
+                          {type.id !== 3 ? (
+                            <h6>
+                              Max to Buy:
+                              <span>
+                                {" "}
+                                {type.remainingLimit
+                                  ? type.remainingLimit === "Unlimited"
+                                    ? "Unlimited"
+                                    : type.remainingLimit
+                                  : "0"}
+                              </span>
+                            </h6>
+                          ) : (
+                            <>
+                              <h6>
+                                Reserved:
+                                <span>
+                                  {" "}
+                                  {type.userBought ? type.userBought : "0"}
+                                </span>
+                              </h6>
+                            </>
+                          )}
+                        </Figure.Caption>
+
+                        {new Date().getTime() >= type.startTime ? (
+                          type.endTime >= new Date().getTime() ? (
+                            type.id !== 3 ? (
+                              <FormGroup>
+                                <div className="opt-container new-updateonclass">
+                                  <FormLabel className="text-white inputLabels tr-text">
+                                    No. of Units
+                                  </FormLabel>
+                                  <input
+                                    autoComplete="off"
+                                    name="units"
+                                    placeholder="Enter quantity"
+                                    value={
+                                      selectedSaleTypeIndex === mainTypeIndex
+                                        ? plotData.units
+                                        : ""
+                                    }
+                                    onChange={(e) => {
+                                      handleDataChange(
+                                        "units",
+                                        e.target.value,
+                                        mainTypeIndex
+                                      );
+                                    }}
+                                  />
+                                </div>
+
+                                <div className="opt-container align-self-right">
+                                  {/* <FormLabel className="text-white mb-0">
+                                  Ends In:
+                                </FormLabel> */}
+                                  <CountDown
+                                    boxInitiateTime={type.endTime}
+                                    handleTimeOut={handleTimeOut}
+                                    roundExpiration={true}
+                                  />
+                                </div>
+                              </FormGroup>
+                            ) : (
+                              <>
+                              <div className="Ended-container-btn"> 
+                                <Button onClick={claimDeemoNFT}
+                                  className="claimDeemoNFT"
+                                >
+                                  {loaderFor === "Claim" ? (
+                                    <Spinner
+                                      as="span"
+                                      animation="border"
+                                      size="sm"
+                                      variant="info"
+                                      role="status"
+                                      aria-hidden="true"
+                                    />
+                                  ) : (
+                                    "Claim NFT" 
+                                  )}
+                                </Button>
+                                </div>
+                              </>
+                            )
+                          ) : (
+                            <div className="Ended-container">
+                              <FormGroup>
+                                <FormLabel className="text-white mb-0">
+                                  Sale Ended
+                                </FormLabel>
+                              </FormGroup>
+                            </div>
+                          )
+                        ) : (
+                          <>
+                            <div className="CountDownClass">
+                              <h4>
+                              {type.id !== 3 ?
+                                "Time Left to start Sale" : 
+                                "Time Left to start Claim"
+                                }</h4>
+                              <CountDown
+                                boxInitiateTime={type.startTime}
+                                handleTimeOut={handleTimeOut}
+                                roundExpiration={true}
+                              />
+                            </div>
+                          </>
+                        )}
+                      </Figure>
+                    );
+                  })
+                ) : (
+                  <h2 className="text-white text-center datanotthere">
+                    No Data Found
+                  </h2>
+                )}
+              </div>
+              <Card className="correction-card">
+                <Card.Header>Summary</Card.Header>
+                <ListGroup variant="flush">
+                  <ListGroup.Item>
+                    Per Unit Price{" "}
+                    <span>
+                      {plotRates?.perUnitprice ? plotRates?.perUnitprice : "0"}{" "}
+                      {nftChain === "binance"
+                        ? "BNB"
+                        : nftChain === "polygon"
+                        ? "MATIC"
+                        : "ETH"}
+                    </span>
+                  </ListGroup.Item>
+                  <ListGroup.Item>
+                    No of Units to Buy{" "}
+                    <span>{plotData.units ? plotData.units : "0"}</span>
+                  </ListGroup.Item>
+                  <ListGroup.Item>
+                    Total{" "}
+                    <span>
+                      {totalPrice.toString().includes("e")
+                        ? totalPrice.toFixed(8)
+                        : totalPrice}{" "}
+                      {nftChain === "binance"
+                        ? "BNB"
+                        : nftChain === "polygon"
+                        ? "MATIC"
+                        : "ETH"}
+                    </span>
+                  </ListGroup.Item>
+                </ListGroup>
+                {/* <Checkbox style={{ marginLeft: '15px',color: "blue" }} onClick={handleShow}>I agree to the disclaimer</Checkbox> */}
+                {/* <input type="checkbox" style={{ marginLeft: '15px',color: "blue" }}>I agree to the disclaimer </input> */}
+                {/* <div className="disclaimer-wrp">
+                  <input
+                    type="checkbox"
+                    defaultChecked={checked}
+                    onChange={() => setChecked(!checked)}
+                  />
+                  <a onClick={handleShow}> I agree to the disclaimer</a>
+                </div> */}
+
+                <Form.Group
+                  className="disclaimer-wrp"
+                  controlId="formBasicCheckbox"
+                >
+                  <Form.Check
+                    type="checkbox"
+                    label=""
+                    defaultChecked={checked}
+                    onChange={() => setChecked(!checked)}
+                  />
+                  <a onClick={handleShow}> I agree to the disclaimer</a>
+                </Form.Group>
+                {isSoldOut ? (
+                  <Button
+                    block
+                    type="button"
+                    variant="primary"
+                    className="checkoutBtn "
+                  >
+                    Sold Out
+                  </Button>
+                ) : (
+                  <Button
+                    block
+                    type="button"
+                    variant="primary"
+                    className="checkoutBtn "
+                    onClick={handlePlaceOrder}
+                    disabled={
+                      !checked ||
+                      calculatingPrice ||
+                      !limitRemains ||
+                      plotData["units"] === ""
+                    }
+                  >
+                    {loaderFor === "Buy" ? (
+                      <Spinner
+                        as="span"
+                        animation="border"
+                        size="sm"
+                        variant="info"
+                        role="status"
+                        aria-hidden="true"
+                      />
+                    ) : (
+                      "Proceed to Checkout"
+                    )}
+                  </Button>
+                )}
+              </Card>
+            </div>
+          ) : (
+            <div className="loader-box">
+              <NewLoader />
+            </div>
+          )}
+        </Modal.Body>
+      </Modal>
+      <Disclaimer
+        show={show}
+        handleShow={handleShow}
+        handleClose={handleClose}
+      ></Disclaimer>
+    </React.Fragment>
+  );
+}
+
+const mapStateToProps = (stateObj, ownProps) => {
+  return {
+    metaMaskAddress: stateObj.metaMaskReducer.metaMaskAddress,
+
+    provider: stateObj.metaMaskReducer.provider,
+    contract: stateObj.metaMaskReducer.contract,
+    transactionInProgress: stateObj.metaMaskReducer.transactionInProgress,
+  };
+};
+export default injectIntl(
+  connect(mapStateToProps, { setTransactionInProgress })(CheckoutModal)
+);

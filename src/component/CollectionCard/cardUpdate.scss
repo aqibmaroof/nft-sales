@@ -1,0 +1,760 @@
+.launchPadUI {
+  padding-top: 60px;
+  padding-bottom: 72px;
+
+  @media (max-width: 1068px) {
+    padding-bottom: 30px;
+  }
+
+  &:hover {
+    text-decoration: none;
+  }
+
+  .launchPadUI-header {
+    border-bottom: 1px solid #E8E8E8;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 17px;
+
+    @media (max-width: 1068px) {
+      margin-bottom: 10px
+    }
+  }
+
+  h2 {
+    font-family: Arial;
+    font-style: normal;
+    font-weight: bold;
+    font-size: 24px;
+    line-height: 28px;
+    color: #23262F;
+    text-transform: capitalize;
+
+    @media (max-width: 1068px) {
+      font-size: 18px;
+    }
+  }
+
+  .cardListGrup {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
+    flex-direction: unset;
+
+    @media (max-width: 1200px) {
+      flex-wrap: wrap;
+    }
+
+    .list-group-item {
+      background: #FFFFFF;
+      box-shadow: 0px 2px 4px rgba(191, 191, 191, 0.5);
+      border-radius: 13px;
+      border: none;
+      margin-right: 6px;
+      padding-left: 0;
+      padding-right: 0;
+      max-width: 20%;
+      width: 100%;
+      height: 100%;
+      padding-top: 0;
+      cursor: pointer;
+      transition: all 0.3s ease 0s;
+
+      &:hover {
+        box-shadow: rgba(4, 17, 29, 0.25) 0px 0px 8px 0px;
+        transform: translateY(-2px);
+        text-decoration: none;
+      }
+
+      &:last-child {
+        margin-right: 0;
+      }
+
+      @media (max-width: 1200px) {
+        max-width: calc(25.1% - 6px);
+        margin-bottom: 16px;
+        padding-top: 0;
+
+        &:nth-child(4) {
+          margin-right: 0;
+        }
+
+        &:last-child {
+          margin-right: 6;
+        }
+      }
+
+      @media (max-width: 990px) {
+        margin-bottom: 10px;
+        max-width: calc(33.58% - 6px);
+
+        &:nth-child(3) {
+          margin-right: 0;
+        }
+
+        &:nth-child(4) {
+          margin-right: 6px;
+        }
+      }
+
+      .cardlistCardImg {
+        box-shadow: none;
+        border: none;
+        border-radius: 0;
+        padding: 0;
+        margin: 0px;
+        width: 100%;
+        margin-left: 0;
+        margin-bottom: 0;
+        overflow: hidden;
+        padding-bottom: 50%;
+        position: relative;
+        background-position: 50%;
+        background-repeat: no-repeat;
+        background-size: cover;
+        transition: all ease-in-out 0.5s;
+
+        .listCardImg {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          border-radius: 10px;
+          position: absolute;
+          border-bottom-right-radius: 0;
+          border-bottom-left-radius: 0;
+        }
+      }
+
+      .listgroup-body {
+        padding: 0 15px;
+        z-index: 1;
+        position: relative;
+        padding-top: 51px;
+
+        @media (max-width: 640px) {
+          padding-top: 31px;
+        }
+
+        .list-group-item-heading {
+          font-family: Arial;
+          font-style: normal;
+          font-weight: normal;
+          font-size: 16px;
+          line-height: 18px;
+          text-align: center;
+          color: #23262F;
+          overflow: hidden;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          width: 80%;
+          max-width: 237px;
+          margin: 0 auto 8px;
+
+          @media (max-width: 1440px) {
+            font-size: 14px;
+            width: 72%;
+          }
+
+          @media (max-width: 767px) {
+            width: 100%;
+          }
+        }
+
+        .list-group-item-text {
+          font-family: Arial;
+          font-style: normal;
+          font-weight: normal;
+          font-size: 12px;
+          line-height: 14px;
+          text-align: center;
+          color: #4B5FFF;
+          overflow: hidden;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          width: 65%;
+          margin: 0 auto 38px;
+
+          // margin-bottom: 38px;
+          @media (max-width: 1440px) {
+            // margin-bottom: 28px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            width: 65%;
+            margin: 0 auto 28px;
+          }
+
+          @media (max-width: 640px) {
+            margin-bottom: 18px;
+            width: 95%;
+          }
+        }
+
+        .listUserProfile {
+          width: 76px;
+          height: 76px;
+          background: #D8D8D8;
+          border: 0px solid #979797;
+          box-sizing: border-box;
+          display: block;
+          border-radius: 50%;
+          // margin: -41px auto 17px;
+          position: absolute;
+          left: 0;
+          right: 0;
+          margin: auto;
+          transform: translate(0px, -50%);
+          top: 0;
+          object-fit: cover;
+
+          @media (max-width: 1400px) {
+            width: 56px;
+            height: 56px;
+            // margin: -31px auto 17px;
+          }
+
+          @media (max-width: 640px) {
+            width: 36px;
+            height: 36px;
+            // margin: -18px auto 10px;
+          }
+        }
+
+        .listgroup-Footer {
+          justify-content: space-between;
+          width: 100%;
+          display: flex;
+          align-items: flex-end;
+
+          .cardStatus:empty {
+            display: none;
+          }
+
+          @media (max-width: 640px) {
+            flex-wrap: wrap;
+          }
+
+          &.launchpad_listgroup-Footer {
+            @media (max-width: 640px) {
+              flex-wrap: wrap;
+              justify-content: center;
+            }
+          }
+
+          .currencyLogo {
+            height: 23px;
+            width: 23px;
+            object-position: bottom;
+
+            @media (max-width: 767px) {
+              height: 18px;
+              width: 18px;
+            }
+
+            &.currencyLogoFloat-first,
+            &.currencyLogoFloat-sec {
+              position: absolute;
+              margin-bottom: 38px;
+
+              @media (max-width: 767px) {
+                margin-bottom: 24px;
+              }
+
+              @media (max-width: 640px) {
+                position: relative;
+                margin-bottom: 0;
+              }
+            }
+
+            &.currencyLogoFloat-sec {
+              margin-bottom: 77px;
+
+              @media (max-width: 767px) {
+                margin-bottom: 48px;
+              }
+
+              @media (max-width: 640px) {
+                position: relative;
+                margin: 0 9px;
+              }
+            }
+          }
+
+          .itemsCount {
+            font-family: Arial;
+            font-style: normal;
+            font-weight: normal;
+            font-size: 12px;
+            line-height: 23px;
+            text-align: center;
+            color: #A660D8;
+            color: #8E9BBA;
+
+            @media (min-width:768px) {
+              // margin-left: 15px;
+            }
+          }
+
+          .cardStatus {
+            font-family: Arial;
+            font-style: normal;
+            font-weight: normal;
+            font-size: 12px;
+            line-height: 23px;
+            text-align: center;
+            color: #8E9BBA;
+
+            @media (max-width: 640px) {
+              width: 100%;
+              text-align: center;
+              padding-top: 10px;
+            }
+
+            &.orangeTxt {
+              color: #FF6E44;
+
+              @media (max-width: 640px) {
+                width: 100%;
+                text-align: center;
+                padding-top: 10px;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  &.hotCollectionUI {
+    padding-bottom: 53px;
+
+    @media (max-width: 1068px) {
+      padding-bottom: 30px;
+      padding-top: 30px;
+    }
+
+    .cardListGrup {
+      flex-wrap: wrap;
+
+      .list-group-item {
+        margin-bottom: 19px;
+        max-width: calc(20.07% - 6px);
+        height: 100%;
+        cursor: pointer;
+
+        &:nth-child(5n+5) {
+          margin-right: 0;
+        }
+
+        @media (min-width:1920px) {
+          max-width: calc(20.05% - 6px);
+        }
+
+        @media (max-width: 992px) {
+          max-width: calc(33.3% - 6px);
+          margin-bottom: 10px;
+          padding-top: 0;
+
+          &:nth-child(5n+5) {
+            margin-right: 6px;
+          }
+        }
+
+        // @media (max-width: 1200px){
+        //   &:nth-child(5n+5){
+        //     margin-right: 6px;
+        //   }   
+        // }
+        @media (max-width: 1200px) {
+
+          // max-width: calc(25.1% - 6px);
+          &:nth-child(4n+4) {
+            margin-right: 6px;
+          }
+        }
+
+        @media (max-width: 990px) {
+          max-width: calc(33.5% - 6px);
+
+          &:nth-child(4n+4) {
+            margin-right: 6px;
+          }
+
+          &:nth-child(3n+3) {
+            margin-right: 0;
+          }
+        }
+
+        @media (max-width: 640px) {
+          max-width: calc(50.4% - 6px);
+
+          &:nth-child(2n+2) {
+            margin-right: 0px;
+          }
+
+          &:nth-child(3n+3) {
+            margin-right: 6px;
+          }
+
+          &:nth-child(4n+4) {
+            margin-right: 0px;
+          }
+
+          &:nth-child(6n+6) {
+            margin-right: 0px;
+          }
+        }
+
+        @media (max-width: 990px) {
+          padding-bottom: 6px;
+        }
+      }
+    }
+  }
+
+  &.hotCollectionUI.collectionsPageUI {
+    overflow: scroll;
+    height: 100vh;
+    padding-left: 0px;
+    padding-right: 0px;
+    padding-top: 0px;
+    padding-bottom: 0;
+    width: 100%;
+    max-height: calc(100vh - 54px);
+
+    .cardListGrup {
+      min-height: calc(100% - 45px);
+      margin-bottom: 20px;
+      padding-left: 15px;
+      padding-right: 15px;
+      padding-top: 10px;
+
+      .list-group-item {
+        max-height: max-content;
+
+        .listgroup-body {
+          display: flex;
+          flex-direction: column;
+          min-height: 144px;
+
+          @media (min-width:1366px) {
+            min-height: 154px;
+          }
+
+          @media (max-width:767px) {
+            min-height: 114px;
+          }
+
+          .listgroup-Footer {
+            margin-top: auto;
+            margin-bottom: 0;
+          }
+        }
+      }
+    }
+
+    @media (max-width: 770px) {
+      max-height: calc(100vh - 101px);
+      .productNav .nav-tabs .MobTabViewNav{
+        width: auto;
+        .MobTabViewNav-body {
+          width: auto;         
+        }
+      }
+    }
+    @media (max-width: 767px) {
+      max-height: calc(100vh - 101px);
+      .productNav .nav-tabs .MobTabViewNav{
+        width: calc(100% - 61px);
+        .MobTabViewNav-body {
+          width: 100%;         
+        }
+      }
+    }
+  }
+
+  &.startGuideUI {
+    padding-top: 140px;
+    position: relative;
+
+    @media (max-width: 1400px) {
+      padding-top: 80px;
+    }
+
+    @media (max-width: 1068px) {
+      padding-top: 50px;
+    }
+
+    @media (max-width: 640px) {
+      padding-top: 25px;
+    }
+
+    &::before {
+      content: "";
+      background: #F4F5F6;
+      width: 1000vw;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: -100vw;
+    }
+
+    .startGuideUI-header {
+      display: block;
+      border: none;
+      z-index: 1;
+      position: relative;
+
+      h2 {
+        font-family: Arial;
+        font-style: normal;
+        font-weight: bold;
+        font-size: 53px;
+        line-height: 61px;
+        text-align: center;
+        color: #000;
+        margin-bottom: 16px;
+
+        @media (max-width: 1400px) {
+          font-size: 36px;
+        }
+
+        @media (max-width: 920px) {
+          font-size: 24px;
+          line-height: 36px;
+          margin-bottom: 10px;
+        }
+      }
+
+      p {
+        font-family: Arial;
+        font-style: normal;
+        font-weight: normal;
+        font-size: 16px;
+        line-height: 18px;
+        text-align: center;
+        color: #8E9BBA;
+        margin-bottom: 64px;
+
+        @media (max-width:1600px) {
+          margin-bottom: 40px;
+        }
+
+        @media (max-width: 1063px) {
+          font-size: 14px;
+          margin-bottom: 20px;
+        }
+      }
+    }
+
+    .cardListGrup {
+      @media (max-width:768px) {
+        a:last-child {
+          display: none;
+        }
+      }
+
+      .list-group-item {
+        cursor: pointer;
+        transition: all 0.3s ease 0s;
+
+        @media (max-width: 990px) {
+          max-width: calc(33.53% - 6px);
+        }
+
+        @media (max-width: 640px) {
+          max-width: calc(50% - 6px);
+
+          &:nth-child(2n+2) {
+            margin-right: 0px;
+          }
+
+          &:nth-child(3n+3) {
+            margin-right: 6px;
+          }
+
+          &:nth-child(4n+4) {
+            margin-right: 6px;
+          }
+        }
+
+        @media (max-width: 650px) {
+          min-height: 192px;
+        }
+
+        &:hover {
+          box-shadow: rgba(4, 17, 29, 0.25) 0px 0px 8px 0px;
+          transform: translateY(-2px);
+          text-decoration: none;
+        }
+
+        .listgroup-body {
+          z-index: 1;
+          position: relative;
+          // padding-top: 0;
+          padding: 0 10px;
+
+          h5 {
+            font-family: Arial;
+            font-style: normal;
+            font-weight: bold;
+            font-size: 24px;
+            line-height: 28px;
+            color: #23262F;
+            margin-top: 29px;
+            margin-bottom: 79px;
+            overflow: auto;
+            white-space: normal;
+            text-align: left;
+            width: 100%;
+            max-width: initial;
+
+            @media (min-width:768px) {
+              display: -webkit-box;
+              -webkit-line-clamp: 1;
+              letter-spacing: 0.2px;
+              -webkit-box-orient: vertical;
+              overflow: hidden;
+            }
+
+            @media (max-width:1600px) {
+              font-size: 14px;
+            }
+
+            @media (max-width:1440px) {
+              margin-bottom: 50px;
+            }
+
+            @media (max-width:1200px) {
+              font-size: 14px;
+              line-height: 18px;
+              margin-top: 20px;
+              margin-bottom: 20px;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+.launchPadUI.hotCollectionUI {
+  padding: 15px;
+
+  .cardListGrup .list-group-item .listgroup-body {
+    .listgroup-Footer {
+      .itemsCount {
+        margin-left: auto;
+        margin-right: 0;
+      }
+    }
+  }
+
+  &.collectionsUI {
+    padding: 0;
+
+    .cardListGrup {
+      padding: 10px 15px;      
+
+      @media (max-width:767px) {
+        padding: 10px 5px 10px 8px;
+      }
+
+      .list-container {
+        border: none;
+        padding: 0;
+        width: 100%;
+        &.allCollection{
+          @media (min-width: 990px){
+            margin-right: -15px;
+          }
+        }
+        .hotAuctionUI.explorCardUI {
+          padding: 0;
+
+          .cardListGrup {
+            padding: 0;
+
+            .list-group-item {              
+              @media (min-width: 990px){
+                margin-right: 16px;
+                max-width: calc(20% - 16px);
+              }
+              .cardlistCardImg {
+                padding-bottom: 100%;
+              }
+
+              .listgroup-body {
+                padding-top: 12px;
+
+                .list-group-item-heading {
+                  width: 100%;
+                  text-align: left;
+                  margin-bottom: 0;
+                }
+
+                .listgroup-Footer {
+                  @media (max-width:767px) {
+                    align-items: center;
+
+                    .cardStatus.orangeTxt {
+                      width: auto;
+                      padding-top: 0;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+.open-sidebar {
+  .launchPadUI {
+    .cardListGrup .list-group-item .listgroup-body {
+      padding-top: 51px;
+    }
+
+    &.startGuideUI {
+      .cardListGrup .list-group-item .listgroup-body {
+        padding-top: 0px;
+      }
+    }
+  }
+
+  .launchPadUI.hotCollectionUI {
+    .cardListGrup .list-group-item .listgroup-body {
+      .list-group-item-heading {
+        @media (max-width:1600px) {
+          width: 75%;
+        }
+
+        @media (max-width:1400px) {
+          width: 72%;
+        }
+      }
+    }
+  }
+}
+
+.ios-web-body {
+  .launchPadUI.hotCollectionUI.collectionsPageUI {
+    @media (max-width: 767px) {
+      max-height: calc(92vh - 90px);
+    }
+  }
+
+  .Ios15_content-layout {
+    .launchPadUI.hotCollectionUI.collectionsPageUI {
+      @media (max-width: 767px) {
+        max-height: calc(98vh - 110px);
+      }
+    }
+  }
+}
