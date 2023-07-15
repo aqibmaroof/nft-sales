@@ -1,1 +1,1 @@
-# Xanalia-minting-single
+# nft-sales

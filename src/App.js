@@ -229,19 +229,16 @@ function App(props) {
               path="/penpenz/minting/xzbdyxoxcr"
               component={() => DynamicRouteComponent("penpenz")}
             />
-
             <Route
               exact
               path="/breakingdown/minting/xzbdyboboq"
               component={Dummy}
             />
-
             <Route
               exact
               path="/cryptoninja/minting/xzbdyboboq"
               component={() => DynamicRouteComponent("crypto")}
             />
-
             <RouteComponent path="*" />
             <Route component={PageNotFound} />
           </Switch>
